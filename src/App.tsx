@@ -17,6 +17,7 @@ function App() {
 
   if (loading) return <div style={{ padding: 24 }}>Cargando...</div>;
   if (!user) return <Login />;
+  console.log('Montando Home para:', user.uid);
   return <Home user={user} />;
 }
 
