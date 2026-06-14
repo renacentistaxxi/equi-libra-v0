@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { signOut, type User } from 'firebase/auth';
 import {
   collection, addDoc, query, orderBy, onSnapshot, serverTimestamp,
-  waitForPendingWrites, getDocFromServer
+  waitForPendingWrites, getDocFromServer, getDocsFromServer
 } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
@@ -37,6 +37,32 @@ export default function Home({ user }: { user: User }) {
       console.error('Error en listener:', error);
     });
     return unsub;
+  }, [user.uid]);
+
+  // Diagnóstico temporal: lectura directa contra el servidor (sin cache)
+  useEffect(() => {
+    let resuelto = false;
+    const timeout = setTimeout(() => {
+      if (!resuelto) console.warn('[getDocsFromServer] sigue pendiente después de 10s');
+    }, 10000);
+
+    (async () => {
+      try {
+        console.log('[getDocsFromServer] antes');
+        const snap = await getDocsFromServer(
+          collection(db, 'users', user.uid, 'captures')
+        );
+        resuelto = true;
+        console.log('[getDocsFromServer] después | docs:', snap.size);
+      } catch (error) {
+        resuelto = true;
+        console.error('[getDocsFromServer] error:', error);
+      } finally {
+        clearTimeout(timeout);
+      }
+    })();
+
+    return () => clearTimeout(timeout);
   }, [user.uid]);
 
   const guardar = async () => {
