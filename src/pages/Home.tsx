@@ -31,12 +31,14 @@ export default function Home({ user }: { user: User }) {
   const guardar = async () => {
     if (!texto.trim()) return;
     try {
-      await addDoc(collection(db, 'users', user.uid, 'captures'), {
+      const docRef = await addDoc(collection(db, 'users', user.uid, 'captures'), {
         texto: texto.trim(),
         creadoLocal: Date.now(),
         creadoEn: serverTimestamp(),
         estado: 'inbox',
       });
+      console.log('Doc creado en path:', docRef.path);
+      console.log('Doc ID:', docRef.id);
       setTexto('');
     } catch (error) {
       console.error('Error al guardar:', error);
