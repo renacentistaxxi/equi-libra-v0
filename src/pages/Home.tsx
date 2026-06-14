@@ -8,32 +8,39 @@ import { auth, db } from '../firebase';
 interface Capture {
   id: string;
   texto: string;
-  creadoEn: any;
+  creadoLocal: number;
 }
 
 export default function Home({ user }: { user: User }) {
   const [texto, setTexto] = useState('');
   const [capturas, setCapturas] = useState<Capture[]>([]);
-  console.log('UID del usuario:', user.uid);
 
   useEffect(() => {
     const q = query(
       collection(db, 'users', user.uid, 'captures'),
-      orderBy('creadoEn', 'desc')
+      orderBy('creadoLocal', 'desc')
     );
-    return onSnapshot(q, (snap) => {
+    const unsub = onSnapshot(q, (snap) => {
       setCapturas(snap.docs.map(d => ({ id: d.id, ...d.data() } as Capture)));
+    }, (error) => {
+      console.error('Error en listener:', error);
     });
+    return unsub;
   }, [user.uid]);
 
   const guardar = async () => {
     if (!texto.trim()) return;
-    await addDoc(collection(db, 'users', user.uid, 'captures'), {
-      texto: texto.trim(),
-      creadoEn: serverTimestamp(),
-      estado: 'inbox',
-    });
-    setTexto('');
+    try {
+      await addDoc(collection(db, 'users', user.uid, 'captures'), {
+        texto: texto.trim(),
+        creadoLocal: Date.now(),
+        creadoEn: serverTimestamp(),
+        estado: 'inbox',
+      });
+      setTexto('');
+    } catch (error) {
+      console.error('Error al guardar:', error);
+    }
   };
 
   const handleKey = (e: React.KeyboardEvent) => {
@@ -41,6 +48,11 @@ export default function Home({ user }: { user: User }) {
       e.preventDefault();
       guardar();
     }
+  };
+
+  const formatearFecha = (ms: number) => {
+    if (!ms) return '';
+    return new Date(ms).toLocaleString('es-AR');
   };
 
   return (
@@ -69,9 +81,7 @@ export default function Home({ user }: { user: User }) {
       {capturas.map(c => (
         <div key={c.id} style={{ borderBottom: '1px solid #eee', padding: '12px 0' }}>
           <p style={{ margin: 0 }}>{c.texto}</p>
-          <small style={{ color: '#aaa' }}>
-            {c.creadoEn?.toDate?.()?.toLocaleString('es-AR') ?? 'guardando...'}
-          </small>
+          <small style={{ color: '#aaa' }}>{formatearFecha(c.creadoLocal)}</small>
         </div>
       ))}
     </div>
