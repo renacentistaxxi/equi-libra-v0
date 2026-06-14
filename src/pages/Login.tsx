@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 
 export default function Login() {
@@ -8,14 +8,11 @@ export default function Login() {
   const [error, setError] = useState('');
 
   const handleLogin = async () => {
+    setError('');
     try {
       await signInWithEmailAndPassword(auth, email, password);
-    } catch {
-      try {
-        await createUserWithEmailAndPassword(auth, email, password);
-      } catch (e: any) {
-        setError(e.message);
-      }
+    } catch (e: any) {
+      setError('Email o contraseña incorrectos.');
     }
   };
 
