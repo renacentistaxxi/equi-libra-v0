@@ -14,6 +14,7 @@ interface Capture {
 export default function Home({ user }: { user: User }) {
   const [texto, setTexto] = useState('');
   const [capturas, setCapturas] = useState<Capture[]>([]);
+  console.log('UID del usuario:', user.uid);
 
   useEffect(() => {
     const q = query(
