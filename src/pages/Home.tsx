@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { signOut, type User } from 'firebase/auth';
 import {
-  collection, addDoc, query, orderBy, onSnapshot, serverTimestamp
+  collection, addDoc, query, orderBy, onSnapshot, serverTimestamp,
+  waitForPendingWrites, getDocFromServer
 } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
@@ -20,7 +21,17 @@ export default function Home({ user }: { user: User }) {
       collection(db, 'users', user.uid, 'captures'),
       orderBy('creadoLocal', 'desc')
     );
-    const unsub = onSnapshot(q, (snap) => {
+    const unsub = onSnapshot(q, { includeMetadataChanges: true }, (snap) => {
+      console.log('[snapshot] fromCache:', snap.metadata.fromCache,
+        '| hasPendingWrites:', snap.metadata.hasPendingWrites,
+        '| docs:', snap.size);
+      snap.docs.forEach(d => {
+        console.log('[snapshot:doc]',
+          'id:', d.id,
+          '| path:', d.ref.path,
+          '| hasPendingWrites:', d.metadata.hasPendingWrites,
+          '| data:', d.data());
+      });
       setCapturas(snap.docs.map(d => ({ id: d.id, ...d.data() } as Capture)));
     }, (error) => {
       console.error('Error en listener:', error);
@@ -30,18 +41,36 @@ export default function Home({ user }: { user: User }) {
 
   const guardar = async () => {
     if (!texto.trim()) return;
+
+    let resuelto = false;
+    const timeout = setTimeout(() => {
+      if (!resuelto) console.warn('addDoc sigue pendiente después de 10s');
+    }, 10000);
+
     try {
+      console.log('[guardar] antes de addDoc');
       const docRef = await addDoc(collection(db, 'users', user.uid, 'captures'), {
         texto: texto.trim(),
         creadoLocal: Date.now(),
         creadoEn: serverTimestamp(),
         estado: 'inbox',
       });
-      console.log('Doc creado en path:', docRef.path);
-      console.log('Doc ID:', docRef.id);
+      resuelto = true;
+      console.log('[guardar] después de addDoc | path:', docRef.path, '| id:', docRef.id);
+
+      console.log('[guardar] antes de waitForPendingWrites');
+      await waitForPendingWrites(db);
+      console.log('[guardar] después de waitForPendingWrites');
+
+      const serverSnap = await getDocFromServer(docRef);
+      console.log('[guardar] getDocFromServer | exists:', serverSnap.exists(),
+        '| data:', serverSnap.data());
+
       setTexto('');
     } catch (error) {
       console.error('Error al guardar:', error);
+    } finally {
+      clearTimeout(timeout);
     }
   };
 
