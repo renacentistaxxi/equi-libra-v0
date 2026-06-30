@@ -43,6 +43,8 @@ La tarea no agrega funcionalidad de producto ni altera el alcance de `00_ACTIVO/
 - `docs/PIPELINE_DESARROLLO.md` — nuevo.
 - `_GOBERNANZA/TAREAS/T-002_PIPELINE_CI.md` — nuevo.
 - `_GOBERNANZA/INFORMES/INFORME_CIERRE_T-002.md` — nuevo.
+- `_GOBERNANZA/REANUDAR_PROXIMA_SESION.md` — nuevo; agregado por aprobación explícita
+  de Adrián en sesión 2026-06-29.
 
 ## Fuera de alcance de esta tarea
 

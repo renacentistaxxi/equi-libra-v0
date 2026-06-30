@@ -13,6 +13,7 @@
 - `docs/PIPELINE_DESARROLLO.md` — guía operativa de CI y Vercel Preview.
 - `_GOBERNANZA/TAREAS/T-002_PIPELINE_CI.md` — tarea aprobada.
 - `_GOBERNANZA/INFORMES/INFORME_CIERRE_T-002.md` — este cierre.
+- `_GOBERNANZA/REANUDAR_PROXIMA_SESION.md` — handoff consolidado para continuar.
 
 La rama incorpora además como antecedente el commit T-000 ya aprobado, porque `main`
 todavía contiene los dos errores de lint preexistentes de `Login.tsx`. T-002 no introduce
@@ -87,6 +88,12 @@ Después de integrar T-002, publicar una rama de funcionalidad.
 Resultado esperado: el push inicia CI y Vercel Preview sin copiar `.env.local`, instalar
 herramientas manualmente ni desplegar a producción.
 
+### Resultados ejecutados por el integrador humano
+
+- P1 — GitHub Actions: **ok**, ejecución `CI #1` sobre `77360a1`, en verde.
+- P2 — Vercel Preview: **ok**, Preview creada; la app abre y el login Firebase funciona.
+- P3 — pendiente hasta integrar T-002 y publicar la siguiente feature.
+
 ## Supuestos tomados
 
 - GitHub es el remoto oficial (`origin`).
@@ -96,7 +103,8 @@ herramientas manualmente ni desplegar a producción.
 
 ## Omisiones y riesgos
 
-- El agente no publicó la rama ni activó GitHub Actions/Vercel; lo prohíbe `AGENTS.md`.
+- La publicación y validación externa fueron realizadas por el integrador humano, no por
+  el agente.
 - No existe suite de tests automatizados en `package.json`; el pipeline ejecuta las dos
   verificaciones disponibles: lint y build.
 - El build no valida credenciales Firebase. La carga y el login deben comprobarse en la
